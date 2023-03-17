@@ -59,7 +59,7 @@ namespace Moments
 		[SerializeField]
 		bool m_AutoAspect = true;
 
-		[SerializeField, Range(1, 30)]
+		[SerializeField, Range(1, 60)]
 		int m_FramePerSecond = 15;
 
 		[SerializeField, Min(-1)]
@@ -70,6 +70,8 @@ namespace Moments
 
 		[SerializeField, Min(0.1f)]
 		float m_BufferSize = 3f;
+
+    RenderTexture m_bufferRenderTexture;
 
 		#endregion
 
@@ -303,11 +305,11 @@ namespace Moments
 
 			if (State == RecorderState.Recording)
 			{
-				OnRenderImage(cam.activeTexture, cam.targetTexture);
+				OnRecordFrame(cam.activeTexture, cam.targetTexture);
 			}
 		}
 
-		void OnRenderImage(RenderTexture source, RenderTexture destination)
+		void OnRecordFrame(RenderTexture source, RenderTexture destination)
 		{
 			if (State != RecorderState.Recording)
 			{
@@ -319,31 +321,41 @@ namespace Moments
 
 			if (m_Time >= m_TimePerFrame)
 			{
-				// Limit the amount of frames stored in memory
-				if (m_Frames.Count >= m_MaxFrameCount)
-					m_RecycledRenderTexture = m_Frames.Dequeue();
+				var rt = GetRecycledTexture();
 
-				m_Time -= m_TimePerFrame;
+				// Directly blitting from source crops the image.
+				// Graphics.Blit(source, rt);
 
-				// Frame data
-				RenderTexture rt = m_RecycledRenderTexture;
-				m_RecycledRenderTexture = null;
-
-				if (rt == null)
-				{
-					rt = new RenderTexture(m_Width, m_Height, 0, RenderTextureFormat.ARGB32);
-					rt.wrapMode = TextureWrapMode.Clamp;
-					rt.filterMode = FilterMode.Bilinear;
-					rt.anisoLevel = 0;
-				}
-
-				Graphics.Blit(source, rt);
+				// Use an additional RenderTexture as a buffer to downscale properly.
+        Graphics.Blit(source, m_bufferRenderTexture);
+        Graphics.Blit(m_bufferRenderTexture, rt);
 
 				m_Frames.Enqueue(rt);
 			}
 
 			Graphics.Blit(source, destination);
 		}
+
+    RenderTexture GetRecycledTexture()
+    {
+      // Limit the amount of frames stored in memory
+      if (m_Frames.Count >= m_MaxFrameCount)
+        m_RecycledRenderTexture = m_Frames.Dequeue();
+
+      // Frame data
+      RenderTexture rt = m_RecycledRenderTexture;
+      m_RecycledRenderTexture = null;
+
+      if (rt == null)
+      {
+        rt = new RenderTexture(m_Width, m_Height, 0, RenderTextureFormat.ARGB32);
+        rt.wrapMode = TextureWrapMode.Clamp;
+        rt.filterMode = FilterMode.Bilinear;
+        rt.anisoLevel = 0;
+      }
+
+      return rt;
+    }
 
 		#endregion
 
@@ -357,6 +369,13 @@ namespace Moments
 			m_MaxFrameCount = Mathf.RoundToInt(m_BufferSize * m_FramePerSecond);
 			m_TimePerFrame = 1f / m_FramePerSecond;
 			m_Time = 0f;
+
+      int camW = GetComponent<Camera>().pixelWidth;
+      int camH = Mathf.RoundToInt(camW / GetComponent<Camera>().aspect);
+      m_bufferRenderTexture = new RenderTexture(camW, camH, 0, RenderTextureFormat.ARGB32);
+      m_bufferRenderTexture.wrapMode = TextureWrapMode.Clamp;
+      m_bufferRenderTexture.filterMode = FilterMode.Bilinear;
+      m_bufferRenderTexture.anisoLevel = 0;
 
 			// Make sure the output folder is set or use the default one
 			if (string.IsNullOrEmpty(SaveFolder))
