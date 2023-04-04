@@ -195,7 +195,7 @@ namespace Moments
 				return;
 			}
 
-			RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
+			RenderPipelineManager.endFrameRendering -= OnEndCameraRendering;
 
 			State = RecorderState.Paused;
 		}
@@ -211,7 +211,7 @@ namespace Moments
 				return;
 			}
 
-			RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
+			RenderPipelineManager.endFrameRendering += OnEndCameraRendering;
 
 			State = RecorderState.Recording;
 		}
@@ -298,18 +298,16 @@ namespace Moments
 			FlushMemory();
 		}
 
-		void OnEndCameraRendering(ScriptableRenderContext context, Camera cam)
+		void OnEndCameraRendering(ScriptableRenderContext context, Camera[] cams)
 		{
-			if (cam != Camera.main)
-				return;
-
+      var cam = cams[cams.Length-1];
 			if (State == RecorderState.Recording)
 			{
-				OnRecordFrame(cam.activeTexture, cam.targetTexture);
+				OnRenderImage(cam.activeTexture, cam.targetTexture);
 			}
 		}
 
-		void OnRecordFrame(RenderTexture source, RenderTexture destination)
+		void OnRenderImage(RenderTexture source, RenderTexture destination)
 		{
 			if (State != RecorderState.Recording)
 			{
@@ -321,14 +319,15 @@ namespace Moments
 
 			if (m_Time >= m_TimePerFrame)
 			{
-				var rt = GetRecycledTexture();
+				m_Time -= m_TimePerFrame;
 
-				// Directly blitting from source crops the image.
+				// Frame data
+				RenderTexture rt = GetRecycledTexture();
+
 				// Graphics.Blit(source, rt);
 
-				// Use an additional RenderTexture as a buffer to downscale properly.
-        Graphics.Blit(source, m_bufferRenderTexture);
-        Graphics.Blit(m_bufferRenderTexture, rt);
+				Graphics.Blit(source, m_bufferRenderTexture);
+				Graphics.Blit(m_bufferRenderTexture, rt);
 
 				m_Frames.Enqueue(rt);
 			}
@@ -370,12 +369,7 @@ namespace Moments
 			m_TimePerFrame = 1f / m_FramePerSecond;
 			m_Time = 0f;
 
-      int camW = GetComponent<Camera>().pixelWidth;
-      int camH = Mathf.RoundToInt(camW / GetComponent<Camera>().aspect);
-      m_bufferRenderTexture = new RenderTexture(camW, camH, 0, RenderTextureFormat.ARGB32);
-      m_bufferRenderTexture.wrapMode = TextureWrapMode.Clamp;
-      m_bufferRenderTexture.filterMode = FilterMode.Bilinear;
-      m_bufferRenderTexture.anisoLevel = 0;
+      CreateBufferTexture();
 
 			// Make sure the output folder is set or use the default one
 			if (string.IsNullOrEmpty(SaveFolder))
@@ -387,6 +381,16 @@ namespace Moments
 				#endif
 			}
 		}
+
+    void CreateBufferTexture()
+    {
+      int camW = GetComponent<Camera>().pixelWidth;
+      int camH = Mathf.RoundToInt(camW / GetComponent<Camera>().aspect);
+      m_bufferRenderTexture = new RenderTexture(camW, camH, 0, RenderTextureFormat.ARGB32);
+      m_bufferRenderTexture.wrapMode = TextureWrapMode.Clamp;
+      m_bufferRenderTexture.filterMode = FilterMode.Bilinear;
+      m_bufferRenderTexture.anisoLevel = 0;
+    }
 
 		// Automatically computes height from the current aspect ratio if auto aspect is set to true
 		public void ComputeHeight()
