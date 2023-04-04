@@ -7,6 +7,7 @@ Updated version of the original repository by [Chman](https://github.com/Chman/M
 Tested with Unity 2022.2.10 The demo requires use of the Universal or High Definition Render Pipelines.
 
 Fixed: Resolution downscaling for URP, using an additional RenderTexture buffer.
+Updated: Can now work for Multicamera setups (Base+Overlay).
 Updated: FPS limit from 30 to 60.
 
 ## Instructions
