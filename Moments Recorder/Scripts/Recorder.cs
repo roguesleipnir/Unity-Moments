@@ -136,7 +136,9 @@ namespace Moments
 		int m_MaxFrameCount;
 		float m_Time;
 		float m_TimePerFrame;
-		Queue<RenderTexture> m_Frames;
+        float m_AbsoluteTime;
+        float m_LastTime;
+        Queue<RenderTexture> m_Frames;
 		RenderTexture m_RecycledRenderTexture;
 		ReflectionUtils<Recorder> m_ReflectionUtils;
 
@@ -215,7 +217,9 @@ namespace Moments
 			RenderPipelineManager.endContextRendering += OnEndCameraRendering;
 
 			State = RecorderState.Recording;
-		}
+            m_Time = 0f;
+            m_AbsoluteTime = 0f;
+        }
 
 		/// <summary>
 		/// Clears all saved frames from memory and starts fresh.
@@ -319,10 +323,22 @@ namespace Moments
 				return;
 			}
 
-			m_Time += Time.unscaledDeltaTime;
-			if (m_Time >= m_TimePerFrame)
-			{
-				m_Time -= m_TimePerFrame;
+            // Fixed invalid use of Time.unscaledDeltaTime.
+            // from: https://github.com/Chman/Moments/pull/12/
+            if (m_LastTime == 0)
+            {
+                m_Time += Time.unscaledDeltaTime;
+                m_LastTime = Time.time;
+            }
+
+            float deltaTime = Time.time - m_LastTime;
+            m_LastTime = Time.time;
+            m_Time += deltaTime;
+
+            if (m_Time >= m_TimePerFrame)
+            {
+                m_AbsoluteTime += m_TimePerFrame;
+                m_Time -= m_TimePerFrame;
 
                 // Frame data
                 RenderTexture rt = GetRecycledTexture();
