@@ -75,6 +75,9 @@ namespace Moments
         [SerializeField, Range(0, 60)]
         int m_FramesPerColorSample = 6;
 
+        [SerializeField, Range(1, 12)]
+        int m_PreprocessYield = 1;
+
         RenderTexture m_bufferRenderTexture;
 
 		#endregion
@@ -468,7 +471,12 @@ namespace Moments
 			{
 				GifFrame frame = ToGifFrame(qFrames.Dequeue(), temp);
 				frames.Add(frame);
-				await Task.Yield();
+
+				// Yield main thread processing
+				for (int i = 0; i < m_PreprocessYield; i++)
+				{
+					await Task.Yield();
+				}
 			}
 
 			// Dispose the temporary texture
