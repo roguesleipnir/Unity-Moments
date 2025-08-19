@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using UnityEngine.Rendering;
 using Moments.Encoder;
 using ThreadPriority = System.Threading.ThreadPriority;
+using System.Threading.Tasks;
 
 namespace Moments
 {
@@ -290,7 +291,11 @@ namespace Moments
 			if (string.IsNullOrEmpty(filename))
 				filename = GenerateFileName();
 
-			StartCoroutine(PreProcess(filename));
+			// Transfer containers and clear immediately
+			var qFrames = new Queue<RenderTexture>(m_Frames);
+			m_Frames.Clear();
+
+			PreProcess(filename, qFrames);
 		}
 
 		#endregion
@@ -445,11 +450,12 @@ namespace Moments
 		}
 
 		// Pre-processing coroutine to extract frame data and send everything to a separate worker thread
-		IEnumerator PreProcess(string filename)
+		async void PreProcess(string filename, Queue<RenderTexture> qFrames)
 		{
 			string filepath = SaveFolder + Path.DirectorySeparatorChar + filename + ".gif";
-			List<GifFrame> frames = new List<GifFrame>(m_Frames.Count);
+			List<GifFrame> frames = new List<GifFrame>(qFrames.Count);
 
+			// Main thread only operation
 			// Get a temporary texture to read RenderTexture data
 			Texture2D temp = new Texture2D(m_Width, m_Height, TextureFormat.RGB24, false);
 			temp.hideFlags = HideFlags.HideAndDontSave;
@@ -458,11 +464,11 @@ namespace Moments
 			temp.anisoLevel = 0;
 
 			// Process the frame queue
-			while (m_Frames.Count > 0)
+			while (qFrames.Count > 0)
 			{
-				GifFrame frame = ToGifFrame(m_Frames.Dequeue(), temp);
+				GifFrame frame = ToGifFrame(qFrames.Dequeue(), temp);
 				frames.Add(frame);
-				yield return null;
+				await Task.Yield();
 			}
 
 			// Dispose the temporary texture
@@ -477,7 +483,6 @@ namespace Moments
 
 			// Setup a worker thread and let it do its magic
 			GifEncoder encoder = new GifEncoder(m_Repeat, 100-m_Quality);
-			Debug.Log($"time per frame? {m_TimePerFrame}");
 			encoder.SetDelay(Mathf.RoundToInt(m_TimePerFrame * 1000f));
 
 			Worker worker = new Worker(WorkerPriority)
@@ -495,7 +500,8 @@ namespace Moments
 		// Should be fast enough for low-res textures but will tank the framerate at higher res
 		GifFrame ToGifFrame(RenderTexture source, Texture2D target)
 		{
-			RenderTexture.active = source;
+            // Main thread only operation
+            RenderTexture.active = source;
 			target.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
 			
 			// Renders come through upside down for some reason...
