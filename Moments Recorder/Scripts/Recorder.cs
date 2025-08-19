@@ -59,7 +59,7 @@ namespace Moments
 		[SerializeField]
 		bool m_AutoAspect = true;
 
-		[SerializeField, Range(1, 120)]
+		[SerializeField, Range(1, 50)]
 		int m_FramePerSecond = 15;
 
 		[SerializeField, Min(-1)]
@@ -315,17 +315,13 @@ namespace Moments
 				return;
 			}
 
-			// TODO: This Frame Calculation is bad.
-			// Seems to fail on High framerates (60+)
-
 			m_Time += Time.unscaledDeltaTime;
-
 			if (m_Time >= m_TimePerFrame)
 			{
 				m_Time -= m_TimePerFrame;
 
-				// Frame data
-				RenderTexture rt = GetRecycledTexture();
+                // Frame data
+                RenderTexture rt = GetRecycledTexture();
 
 				// Graphics.Blit(source, rt);
 
@@ -455,6 +451,7 @@ namespace Moments
 
 			// Setup a worker thread and let it do its magic
 			GifEncoder encoder = new GifEncoder(m_Repeat, 100-m_Quality);
+			Debug.Log($"time per frame? {m_TimePerFrame}");
 			encoder.SetDelay(Mathf.RoundToInt(m_TimePerFrame * 1000f));
 
 			Worker worker = new Worker(WorkerPriority)

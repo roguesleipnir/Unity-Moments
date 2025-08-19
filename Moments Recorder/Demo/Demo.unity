@@ -151,14 +151,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd5378998db5ba9488d08a4e3b80821a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Width: 1042
-  m_Height: 586
-  m_AutoAspect: 0
-  m_FramePerSecond: 30
+  m_Width: 540
+  m_Height: 304
+  m_AutoAspect: 1
+  m_FramePerSecond: 50
   m_Repeat: 0
-  m_Quality: 100
+  m_Quality: 95
   m_BufferSize: 5
-  WorkerPriority: 2
+  WorkerPriority: 3
 --- !u!114 &33650176
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -210,7 +210,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 2147483647
+    m_Bits: 4294967295
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -606,7 +606,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CubePrefab: {fileID: 470020, guid: cc044cb3cafa06f4999e18d253e31e9c, type: 3}
-  Interval: 0.2
+  Interval: 0.1
 --- !u!4 &1976363946
 Transform:
   m_ObjectHideFlags: 0
