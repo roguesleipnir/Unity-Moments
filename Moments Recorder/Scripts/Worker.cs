@@ -59,7 +59,10 @@ namespace Moments
 		{
 			m_Encoder.Start(m_FilePath);
 
-			for (int i = 0; i < m_Frames.Count; i++)
+            // pass all frames to encoder to build a palette out of a subset of them
+            m_Encoder.BuildPalette(ref m_Frames);
+
+            for (int i = 0; i < m_Frames.Count; i++)
 			{
 				GifFrame frame = m_Frames[i];
 				m_Encoder.AddFrame(frame);

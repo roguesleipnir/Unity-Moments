@@ -34,7 +34,8 @@ namespace MomentsEditor
 		SerializedProperty m_Width;
 		SerializedProperty m_Height;
 		SerializedProperty m_FramePerSecond;
-		SerializedProperty m_Repeat;
+        SerializedProperty m_FramesPerColorSample;
+        SerializedProperty m_Repeat;
 		SerializedProperty m_Quality;
 		SerializedProperty m_BufferSize;
 		SerializedProperty m_WorkerPriority;
@@ -45,7 +46,8 @@ namespace MomentsEditor
 			m_Width = serializedObject.FindProperty("m_Width");
 			m_Height = serializedObject.FindProperty("m_Height");
 			m_FramePerSecond = serializedObject.FindProperty("m_FramePerSecond");
-			m_Repeat = serializedObject.FindProperty("m_Repeat");
+            m_FramesPerColorSample = serializedObject.FindProperty("m_FramesPerColorSample");
+            m_Repeat = serializedObject.FindProperty("m_Repeat");
 			m_Quality = serializedObject.FindProperty("m_Quality");
 			m_BufferSize = serializedObject.FindProperty("m_BufferSize");
 			m_WorkerPriority = serializedObject.FindProperty("WorkerPriority");
@@ -76,7 +78,8 @@ namespace MomentsEditor
 			EditorGUILayout.PropertyField(m_Quality, new GUIContent("Quality", "Higher values need longer processing time. 85 is generally a good middleground value."));
 			EditorGUILayout.PropertyField(m_Repeat, new GUIContent("Repeat", "-1 to disable, 0 to loop indefinitely, >0 to loop a set number of time."));
 			EditorGUILayout.PropertyField(m_FramePerSecond, new GUIContent("Frames Per Second", "The number of frames per second the gif will run at."));
-			EditorGUILayout.PropertyField(m_BufferSize, new GUIContent("Record Time", "The amount of time (in seconds) to record to memory."));
+            EditorGUILayout.PropertyField(m_FramesPerColorSample, new GUIContent("Frames Per Color Sample", "Create the gif's color palette by analysing every n-th frame. Lower values mean better color representation, but much longer processing time. Higher values process faster, but may miss important colors between samples. Zero means a new color palette is created per frame."));
+            EditorGUILayout.PropertyField(m_BufferSize, new GUIContent("Record Time", "The amount of time (in seconds) to record to memory."));
 
 			serializedObject.ApplyModifiedProperties();
 
