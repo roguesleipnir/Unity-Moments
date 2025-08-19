@@ -73,7 +73,7 @@ namespace MomentsEditor
 				EditorGUILayout.LabelField(new GUIContent("Height", "Output gif height in pixels."), new GUIContent(m_Height.intValue.ToString()));
 
 			EditorGUILayout.PropertyField(m_WorkerPriority, new GUIContent("Worker Thread Priority", "Thread priority to use when processing frames to a gif file."));
-			EditorGUILayout.PropertyField(m_Quality, new GUIContent("Compression Quality", "Lower values mean better quality but slightly longer processing time. 15 is generally a good middleground value."));
+			EditorGUILayout.PropertyField(m_Quality, new GUIContent("Quality", "Higher values need longer processing time. 85 is generally a good middleground value."));
 			EditorGUILayout.PropertyField(m_Repeat, new GUIContent("Repeat", "-1 to disable, 0 to loop indefinitely, >0 to loop a set number of time."));
 			EditorGUILayout.PropertyField(m_FramePerSecond, new GUIContent("Frames Per Second", "The number of frames per second the gif will run at."));
 			EditorGUILayout.PropertyField(m_BufferSize, new GUIContent("Record Time", "The amount of time (in seconds) to record to memory."));

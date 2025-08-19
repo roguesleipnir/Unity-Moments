@@ -65,8 +65,8 @@ namespace Moments
 		[SerializeField, Min(-1)]
 		int m_Repeat = 0;
 
-		[SerializeField, Range(1, 100)]
-		int m_Quality = 15;
+		[SerializeField, Range(0, 99)]
+		int m_Quality = 85;
 
 		[SerializeField, Min(0.1f)]
 		float m_BufferSize = 3f;
@@ -454,7 +454,7 @@ namespace Moments
 				OnPreProcessingDone();
 
 			// Setup a worker thread and let it do its magic
-			GifEncoder encoder = new GifEncoder(m_Repeat, m_Quality);
+			GifEncoder encoder = new GifEncoder(m_Repeat, 100-m_Quality);
 			encoder.SetDelay(Mathf.RoundToInt(m_TimePerFrame * 1000f));
 
 			Worker worker = new Worker(WorkerPriority)
