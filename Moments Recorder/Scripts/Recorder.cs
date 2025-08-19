@@ -59,7 +59,7 @@ namespace Moments
 		[SerializeField]
 		bool m_AutoAspect = true;
 
-		[SerializeField, Range(1, 60)]
+		[SerializeField, Range(1, 120)]
 		int m_FramePerSecond = 15;
 
 		[SerializeField, Min(-1)]
@@ -195,7 +195,7 @@ namespace Moments
 				return;
 			}
 
-			RenderPipelineManager.endFrameRendering -= OnEndCameraRendering;
+			RenderPipelineManager.endContextRendering -= OnEndCameraRendering;
 
 			State = RecorderState.Paused;
 		}
@@ -211,7 +211,7 @@ namespace Moments
 				return;
 			}
 
-			RenderPipelineManager.endFrameRendering += OnEndCameraRendering;
+			RenderPipelineManager.endContextRendering += OnEndCameraRendering;
 
 			State = RecorderState.Recording;
 		}
@@ -298,9 +298,9 @@ namespace Moments
 			FlushMemory();
 		}
 
-		void OnEndCameraRendering(ScriptableRenderContext context, Camera[] cams)
+		void OnEndCameraRendering(ScriptableRenderContext context, List<Camera> cams)
 		{
-      var cam = cams[cams.Length-1];
+			var cam = cams[cams.Count-1];
 			if (State == RecorderState.Recording)
 			{
 				OnRenderImage(cam.activeTexture, cam.targetTexture);
@@ -314,6 +314,9 @@ namespace Moments
 				Graphics.Blit(source, destination);
 				return;
 			}
+
+			// TODO: This Frame Calculation is bad.
+			// Seems to fail on High framerates (60+)
 
 			m_Time += Time.unscaledDeltaTime;
 
@@ -335,33 +338,32 @@ namespace Moments
 			Graphics.Blit(source, destination);
 		}
 
-    RenderTexture GetRecycledTexture()
-    {
-      // Limit the amount of frames stored in memory
-      if (m_Frames.Count >= m_MaxFrameCount)
-        m_RecycledRenderTexture = m_Frames.Dequeue();
+        RenderTexture GetRecycledTexture()
+        {
+            // Limit the amount of frames stored in memory
+            if (m_Frames.Count >= m_MaxFrameCount)
+                m_RecycledRenderTexture = m_Frames.Dequeue();
 
-      // Frame data
-      RenderTexture rt = m_RecycledRenderTexture;
-      m_RecycledRenderTexture = null;
+            // Frame data
+            RenderTexture rt = m_RecycledRenderTexture;
+            m_RecycledRenderTexture = null;
 
-      if (rt == null)
-      {
-        rt = new RenderTexture(m_Width, m_Height, 0, RenderTextureFormat.ARGB32);
-        rt.wrapMode = TextureWrapMode.Clamp;
-        rt.filterMode = FilterMode.Bilinear;
-        rt.anisoLevel = 0;
-      }
+            if (rt == null)
+            {
+                rt = new RenderTexture(m_Width, m_Height, 0, RenderTextureFormat.ARGB32);
+                rt.wrapMode = TextureWrapMode.Clamp;
+                rt.filterMode = FilterMode.Bilinear;
+                rt.anisoLevel = 0;
+            }
 
-      return rt;
-    }
+            return rt;
+        }
+        #endregion
 
-		#endregion
+        #region Methods
 
-		#region Methods
-
-		// Used to reset internal values, called on Start(), Setup() and FlushMemory()
-		void Init()
+        // Used to reset internal values, called on Start(), Setup() and FlushMemory()
+        void Init()
 		{
 			State = RecorderState.Paused;
 			ComputeHeight();
@@ -369,7 +371,7 @@ namespace Moments
 			m_TimePerFrame = 1f / m_FramePerSecond;
 			m_Time = 0f;
 
-      CreateBufferTexture();
+			CreateBufferTexture();
 
 			// Make sure the output folder is set or use the default one
 			if (string.IsNullOrEmpty(SaveFolder))
@@ -382,15 +384,15 @@ namespace Moments
 			}
 		}
 
-    void CreateBufferTexture()
-    {
-      int camW = GetComponent<Camera>().pixelWidth;
-      int camH = Mathf.RoundToInt(camW / GetComponent<Camera>().aspect);
-      m_bufferRenderTexture = new RenderTexture(camW, camH, 0, RenderTextureFormat.ARGB32);
-      m_bufferRenderTexture.wrapMode = TextureWrapMode.Clamp;
-      m_bufferRenderTexture.filterMode = FilterMode.Bilinear;
-      m_bufferRenderTexture.anisoLevel = 0;
-    }
+		void CreateBufferTexture()
+		{
+			int camW = GetComponent<Camera>().pixelWidth;
+			int camH = Mathf.RoundToInt(camW / GetComponent<Camera>().aspect);
+			m_bufferRenderTexture = new RenderTexture(camW, camH, 0, RenderTextureFormat.ARGB32);
+			m_bufferRenderTexture.wrapMode = TextureWrapMode.Clamp;
+			m_bufferRenderTexture.filterMode = FilterMode.Bilinear;
+			m_bufferRenderTexture.anisoLevel = 0;
+		}
 
 		// Automatically computes height from the current aspect ratio if auto aspect is set to true
 		public void ComputeHeight()
