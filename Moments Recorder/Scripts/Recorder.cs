@@ -132,6 +132,7 @@ namespace Moments
 
 		#region Internal fields
 
+		Camera _camera;
 		int m_MaxFrameCount;
 		float m_Time;
 		float m_TimePerFrame;
@@ -290,7 +291,8 @@ namespace Moments
 		{
 			m_ReflectionUtils = new ReflectionUtils<Recorder>(this);
 			m_Frames = new Queue<RenderTexture>();
-			Init();
+            _camera = GetComponent<Camera>();
+            Init();
 		}
 
 		void OnDestroy()
@@ -300,10 +302,12 @@ namespace Moments
 
 		void OnEndCameraRendering(ScriptableRenderContext context, List<Camera> cams)
 		{
-			var cam = cams[cams.Count-1];
-			if (State == RecorderState.Recording)
+			foreach (var cam in cams)
 			{
-				OnRenderImage(cam.activeTexture, cam.targetTexture);
+				if (State == RecorderState.Recording && _camera.GetInstanceID() == cam.GetInstanceID())
+				{
+					OnRenderImage(cam.activeTexture, cam.targetTexture);
+                }
 			}
 		}
 
