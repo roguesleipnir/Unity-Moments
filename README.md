@@ -4,11 +4,14 @@ Updated version of the original repository by [Chman](https://github.com/Chman/M
 
 **Moments** is a quick GIF replay recorder for Unity. It automatically records the last few seconds of gameplay and lets you save to a GIF file on demand.
 
-Tested with Unity 2022.2.10 The demo requires use of the Universal or High Definition Render Pipelines.
+The demo requires use of the Universal or High Definition Render Pipelines.
 
-Fixed: Resolution downscaling for URP, using an additional RenderTexture buffer.
-Updated: Can now work for Multicamera setups (Base+Overlay).
-Updated: FPS limit from 30 to 60.
+Tested with Unity 6000.0.42.
+Tested with Multiple Cameras, Texture Renderers, Postprocessing, Renderer Features.
+
+Fixed: Now works with other RenderTexture writer Cameras active in the background.
+Updated: FPS limit from 60 to 50 for more accurate results.
+Updated: Inverted quantize quality field for readability.
 
 ## Instructions
 
