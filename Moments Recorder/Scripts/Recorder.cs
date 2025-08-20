@@ -316,7 +316,8 @@ namespace Moments
 		void OnDestroy()
 		{
 			FlushMemory();
-		}
+            RenderPipelineManager.endContextRendering -= OnEndCameraRendering;
+        }
 
 		void OnEndCameraRendering(ScriptableRenderContext context, List<Camera> cams)
 		{
